@@ -1,6 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
@@ -9,7 +9,7 @@ using DLiteTube.Views;
 
 namespace DLiteTube;
 
-public partial class App : Application
+public class App : Application
 {
     public override void Initialize()
     {
@@ -32,7 +32,8 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    private void DisableAvaloniaDataAnnotationValidation()
+    [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode")]
+    private static void DisableAvaloniaDataAnnotationValidation()
     {
         // Get an array of plugins to remove
         var dataValidationPluginsToRemove =

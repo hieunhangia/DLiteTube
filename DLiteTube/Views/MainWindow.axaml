@@ -63,7 +63,7 @@
                         <TextBlock Text="{Binding VideoResult.Author}" />
                         <TextBlock Text="{Binding VideoResult.Duration}"
                                    IsVisible="{Binding !VideoResult.IsLiveStream}" />
-                        <TextBlock Text="{Binding VideoResult.Url}" />
+                        <TextBlock Text="{Binding VideoResult.Url}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Grid>
 
@@ -79,39 +79,34 @@
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="5"
                           RowDefinitions="Auto,360" RowSpacing="5">
                         <TextBlock Grid.Column="0" Grid.Row="0" Text="Video" />
-                        <ScrollViewer Grid.Column="0" Grid.Row="1">
-                            <ListBox
-                                ItemsSource="{Binding VideoResult.VideoStreams}"
-                                SelectedItem="{Binding SelectedVideoStream, Mode=TwoWay}">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate x:DataType="models:VideoStreamInfo">
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding VideoQuality}" />
-                                            <TextBlock Text="{Binding ContainerString}" />
-                                            <TextBlock Text="{Binding BitrateString}" />
-                                            <TextBlock Text="{Binding SizeWithBestAudioString}" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </ScrollViewer>
+                        <ListBox Grid.Column="0" Grid.Row="1"
+                                 ItemsSource="{Binding VideoResult.VideoStreams}"
+                                 SelectedItem="{Binding SelectedVideoStream, Mode=TwoWay}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="models:VideoStreamInfo">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding VideoQuality}" />
+                                        <TextBlock Text="{Binding Container}" />
+                                        <TextBlock Text="{Binding BitrateString}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
                         <TextBlock Grid.Column="1" Grid.Row="0" Text="Âm thanh" />
-                        <ScrollViewer Grid.Column="1" Grid.Row="1">
-                            <ListBox ItemsSource="{Binding VideoResult.AudioStreams}"
-                                     SelectedItem="{Binding SelectedAudioStream, Mode=TwoWay}">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate x:DataType="models:AudioStreamInfo">
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding ContainerString}" />
-                                            <TextBlock Text="{Binding BitrateString}" />
-                                            <TextBlock Text="{Binding AudioLanguage}" />
-                                            <TextBlock Text="{Binding SizeString}" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </ScrollViewer>
 
+                        <ListBox Grid.Column="1" Grid.Row="1"
+                                 ItemsSource="{Binding VideoResult.AudioStreams}"
+                                 SelectedItem="{Binding SelectedAudioStream, Mode=TwoWay}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="models:AudioStreamInfo">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Container}" />
+                                        <TextBlock Text="{Binding BitrateString}" />
+                                        <TextBlock Text="{Binding AudioLanguage}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
                     </Grid>
 
                     <StackPanel Orientation="Horizontal">
