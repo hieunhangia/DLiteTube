@@ -13,6 +13,7 @@ using MsBox.Avalonia.Dto;
 using MsBox.Avalonia.Enums;
 using YoutubeExplode;
 using YoutubeExplode.Common;
+using YoutubeExplode.Videos.Streams;
 
 namespace DLiteTube.ViewModels;
 
@@ -30,7 +31,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private VideoStreamInfo? _selectedVideoStream;
 
-    [ObservableProperty] private AudioOnlyStreamInfo? _selectedAudioOnlyStream;
+    [ObservableProperty] private AudioStreamInfo? _selectedAudioStream;
 
     [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(WatchCommand), nameof(DownloadCommand))]
     private IStreamInfo? _selectedStream;
@@ -41,10 +42,10 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (value == null) return;
         SelectedStream = value;
-        SelectedAudioOnlyStream = null;
+        SelectedAudioStream = null;
     }
 
-    partial void OnSelectedAudioOnlyStreamChanged(AudioOnlyStreamInfo? value)
+    partial void OnSelectedAudioStreamChanged(AudioStreamInfo? value)
     {
         if (value == null) return;
         SelectedStream = value;
@@ -101,19 +102,25 @@ public partial class MainWindowViewModel : ViewModelBase
                             .Select(s => new VideoStreamInfo
                             {
                                 Url = s.Url,
-                                Container = s.Container.Name,
+                                Container = s.Container,
+                                ContainerString = s.Container.Name,
                                 VideoQuality = s.VideoQuality.Label,
-                                Bitrate = GetKbpsBitrateString(s.Bitrate.KiloBitsPerSecond),
-                                FileSizeWithBestAudio = GetMbFileSizeString(s.Size.MegaBytes + bestAudioFileSize)
+                                Bitrate = s.Bitrate,
+                                BitrateString = GetKbpsBitrateString(s.Bitrate.KiloBitsPerSecond),
+                                Size = s.Size,
+                                SizeWithBestAudioString = GetMbFileSizeString(s.Size.MegaBytes + bestAudioFileSize)
                             });
-                        tempResult.AudioOnlyStreams = audioStreamOrdered
-                            .Select(s => new AudioOnlyStreamInfo
+                        tempResult.AudioStreams = audioStreamOrdered
+                            .Select(s => new AudioStreamInfo
                             {
                                 Url = s.Url,
-                                Container = s.Container.Name,
-                                AudioBitrate = GetKbpsBitrateString(s.Bitrate.KiloBitsPerSecond),
+                                Container = s.Container,
+                                ContainerString = s.Container.Name,
+                                Bitrate = s.Bitrate,
+                                BitrateString = GetKbpsBitrateString(s.Bitrate.KiloBitsPerSecond),
                                 AudioLanguage = s.AudioLanguage.ToString() ?? "Default",
-                                FileSize = GetMbFileSizeString(s.Size.MegaBytes)
+                                Size = s.Size,
+                                SizeString = GetMbFileSizeString(s.Size.MegaBytes)
                             });
                     }
 
@@ -159,7 +166,7 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand(CanExecute = nameof(CanWatchOrDownload))]
-    private void Download()
+    private async Task DownloadAsync()
     {
     }
 

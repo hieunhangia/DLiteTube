@@ -11,5 +11,5 @@ public class VideoResult
     public required string ThumbnailUrl { get; init; }
     public bool IsLiveStream => string.IsNullOrWhiteSpace(Duration) || Duration == "00:00:00";
     public IEnumerable<VideoStreamInfo>? VideoStreams { get; set; }
-    public IEnumerable<AudioOnlyStreamInfo>? AudioOnlyStreams { get; set; }
+    public IEnumerable<AudioStreamInfo>? AudioStreams { get; set; }
 }

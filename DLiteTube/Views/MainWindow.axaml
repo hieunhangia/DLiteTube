@@ -87,9 +87,9 @@
                                     <DataTemplate x:DataType="models:VideoStreamInfo">
                                         <StackPanel>
                                             <TextBlock Text="{Binding VideoQuality}" />
-                                            <TextBlock Text="{Binding Container}" />
-                                            <TextBlock Text="{Binding Bitrate}" />
-                                            <TextBlock Text="{Binding FileSizeWithBestAudio}" />
+                                            <TextBlock Text="{Binding ContainerString}" />
+                                            <TextBlock Text="{Binding BitrateString}" />
+                                            <TextBlock Text="{Binding SizeWithBestAudioString}" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
@@ -97,15 +97,15 @@
                         </ScrollViewer>
                         <TextBlock Grid.Column="1" Grid.Row="0" Text="Âm thanh" />
                         <ScrollViewer Grid.Column="1" Grid.Row="1">
-                            <ListBox ItemsSource="{Binding VideoResult.AudioOnlyStreams}"
-                                     SelectedItem="{Binding SelectedAudioOnlyStream, Mode=TwoWay}">
+                            <ListBox ItemsSource="{Binding VideoResult.AudioStreams}"
+                                     SelectedItem="{Binding SelectedAudioStream, Mode=TwoWay}">
                                 <ListBox.ItemTemplate>
-                                    <DataTemplate x:DataType="models:AudioOnlyStreamInfo">
+                                    <DataTemplate x:DataType="models:AudioStreamInfo">
                                         <StackPanel>
-                                            <TextBlock Text="{Binding AudioBitrate}" />
-                                            <TextBlock Text="{Binding Container}" />
+                                            <TextBlock Text="{Binding ContainerString}" />
+                                            <TextBlock Text="{Binding BitrateString}" />
                                             <TextBlock Text="{Binding AudioLanguage}" />
-                                            <TextBlock Text="{Binding FileSize}" />
+                                            <TextBlock Text="{Binding SizeString}" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
