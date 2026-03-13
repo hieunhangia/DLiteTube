@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,10 +21,11 @@ namespace DLiteTube.ViewModels;
 
 public partial class DownloadProgressViewModel(
     YoutubeClient youtubeClient,
+    string saveFilePath,
     VideoResult videoResult,
     IStreamInfo selectedStream,
     string ffmpegPath)
-    : ObservableObject
+    : ViewModelBase
 {
     [ObservableProperty] private double _downloadProgress;
 
@@ -31,23 +33,23 @@ public partial class DownloadProgressViewModel(
 
     [ObservableProperty] private string? _title;
 
-    private static DownloadProgressWindow GetWindow()
+    private DownloadProgressWindow GetWindow()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
         {
-            throw new InvalidOperationException("Download progress window not found.");
+            throw new InvalidOperationException("Application lifetime is not a classic desktop style.");
         }
 
-        var window = desktop.Windows.FirstOrDefault(w => w is DownloadProgressWindow);
-        return window as DownloadProgressWindow ??
-               throw new InvalidOperationException("Download progress window not found.");
+        var window = desktop.Windows
+            .OfType<DownloadProgressWindow>()
+            .FirstOrDefault(w => w.DataContext == this);
+        return window ?? throw new InvalidOperationException("Download progress window not found.");
     }
 
     [RelayCommand]
     private async Task StartDownloadAsync()
     {
         var window = GetWindow();
-        var safeFilename = GetSafeFileName(videoResult.Title);
         var progress = new Progress<double>(p => DownloadProgress = p * 100);
         DownloadCts = new CancellationTokenSource();
         try
@@ -56,9 +58,11 @@ public partial class DownloadProgressViewModel(
             {
                 case AudioStreamInfo audioStreamInfo:
                 {
-                    Title = $"Đang tải xuống: {videoResult.Title} (Audio - {audioStreamInfo.BitrateString})";
+                    Title =
+                        $"Đang tải xuống: {videoResult.Title} ({audioStreamInfo.Container} Audio - {audioStreamInfo.BitrateString})";
+                    GetWindow().Title = Title;
                     await youtubeClient.Videos.DownloadAsync([audioStreamInfo],
-                        new ConversionRequestBuilder($"{safeFilename}.{audioStreamInfo.Container}")
+                        new ConversionRequestBuilder(saveFilePath)
                             .SetFFmpegPath(ffmpegPath)
                             .SetPreset(ConversionPreset.UltraFast)
                             .Build(),
@@ -76,13 +80,17 @@ public partial class DownloadProgressViewModel(
                 }
                 case VideoStreamInfo videoStreamInfo:
                 {
-                    Title = $"Đang tải xuống: {videoResult.Title} (Video - {videoStreamInfo.VideoQuality})";
-                    var bestAudioStreamInfo = videoResult.AudioStreams?.GetWithHighestBitrate();
+                    Title =
+                        $"Đang tải xuống: {videoResult.Title} ({videoStreamInfo.Container} Video - {videoStreamInfo.VideoQuality})";
+                    GetWindow().Title = Title;
+
+                    // Download video with the best audio stream if available
+                    var bestAudioStreamInfo = videoResult.AudioStreams?.TryGetWithHighestBitrate();
                     IReadOnlyList<IStreamInfo> streamInfos = bestAudioStreamInfo != null
                         ? [videoStreamInfo, bestAudioStreamInfo]
                         : [videoStreamInfo];
                     await youtubeClient.Videos.DownloadAsync(streamInfos,
-                        new ConversionRequestBuilder($"{safeFilename}.{videoStreamInfo.Container}")
+                        new ConversionRequestBuilder(saveFilePath)
                             .SetFFmpegPath(ffmpegPath)
                             .SetPreset(ConversionPreset.UltraFast)
                             .Build(),
@@ -110,6 +118,18 @@ public partial class DownloadProgressViewModel(
                     Icon = Icon.Info,
                     ButtonDefinitions = ButtonEnum.Ok
                 }).ShowAsPopupAsync(window);
+
+            if (File.Exists(saveFilePath))
+            {
+                try
+                {
+                    File.Delete(saveFilePath);
+                }
+                catch
+                {
+                    // Ignore any errors during file deletion
+                }
+            }
         }
         catch
         {
@@ -124,18 +144,6 @@ public partial class DownloadProgressViewModel(
         }
 
         window.Close();
-        return;
-
-        static string GetSafeFileName(string fileName) => fileName
-            .Replace("/", "⁄")
-            .Replace("\\", "＼")
-            .Replace(":", "：")
-            .Replace("?", "？")
-            .Replace("|", "｜")
-            .Replace("\"", "”")
-            .Replace("*", "＊")
-            .Replace("<", "＜")
-            .Replace(">", "＞");
     }
 
     [RelayCommand]
