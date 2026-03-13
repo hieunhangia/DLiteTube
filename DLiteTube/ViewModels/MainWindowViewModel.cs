@@ -47,7 +47,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private AudioStreamInfo? _selectedAudioStream;
 
-    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(WatchCommand), nameof(DownloadCommand))]
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(DownloadCommand))]
     private IStreamInfo? _selectedStream;
 
     private static MainWindow GetMainWindow()
@@ -58,7 +58,7 @@ public partial class MainWindowViewModel : ViewModelBase
             : throw new InvalidOperationException("Main window not found.");
     }
 
-    private bool CanWatchOrDownload() => SelectedStream != null;
+    private bool CanDownload() => SelectedStream != null;
 
     partial void OnSelectedVideoStreamChanged(VideoStreamInfo? value)
     {
@@ -163,17 +163,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
-    private void WatchLiveStream()
-    {
-    }
-
-    [RelayCommand(CanExecute = nameof(CanWatchOrDownload))]
-    private void Watch()
-    {
-    }
-
-    [RelayCommand(CanExecute = nameof(CanWatchOrDownload))]
+    [RelayCommand(CanExecute = nameof(CanDownload))]
     private async Task DownloadAsync()
     {
         if (VideoResult == null || SelectedStream == null) return;

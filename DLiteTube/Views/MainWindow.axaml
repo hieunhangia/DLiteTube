@@ -68,11 +68,8 @@
                 </Grid>
 
                 <!-- Live stream -->
-                <StackPanel IsVisible="{Binding VideoResult.IsLiveStream}">
-                    <Button Command="{Binding WatchLiveStreamCommand}">
-                        <TextBlock Text="Xem LiveStream" />
-                    </Button>
-                </StackPanel>
+                <TextBlock IsVisible="{Binding VideoResult.IsLiveStream}"
+                           Text="Không hỗ trợ tải xuống video trực tiếp." />
 
                 <!-- Normal video -->
                 <StackPanel IsVisible="{Binding !VideoResult.IsLiveStream}">
@@ -108,16 +105,9 @@
                             </ListBox.ItemTemplate>
                         </ListBox>
                     </Grid>
-
-                    <StackPanel Orientation="Horizontal">
-                        <Button Command="{Binding WatchCommand}">
-                            <TextBlock Text="Xem" />
-                        </Button>
-
-                        <Button Command="{Binding DownloadCommand}">
-                            <TextBlock Text="Tải xuống" />
-                        </Button>
-                    </StackPanel>
+                    <Button Command="{Binding DownloadCommand}">
+                        <TextBlock Text="Tải xuống" />
+                    </Button>
                 </StackPanel>
             </StackPanel>
         </StackPanel>
