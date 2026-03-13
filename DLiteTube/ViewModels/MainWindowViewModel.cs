@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DLiteTube.Models;
@@ -55,7 +56,8 @@ public partial class MainWindowViewModel : ViewModelBase
         return Application.Current?.ApplicationLifetime
             is IClassicDesktopStyleApplicationLifetime { MainWindow: MainWindow window }
             ? window
-            : throw new InvalidOperationException("Main window not found.");
+            : throw new InvalidOperationException(
+                "Application lifetime is not a classic desktop style or main window is not found.");
     }
 
     private bool CanDownload() => SelectedStream != null;
@@ -167,12 +169,36 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task DownloadAsync()
     {
         if (VideoResult == null || SelectedStream == null) return;
+
+        var options = new FilePickerSaveOptions
+        {
+            Title = "Chọn nơi lưu file tải xuống",
+            DefaultExtension = SelectedStream.Container.Name,
+            SuggestedFileName = $"{GetSafeFileName(VideoResult.Title)}.{SelectedStream.Container.Name}"
+        };
+
+        var file = await GetMainWindow().StorageProvider.SaveFilePickerAsync(options);
+        if (file == null) return;
+
         var downloadProgressWindow = new DownloadProgressWindow
         {
-            DataContext =
-                new DownloadProgressViewModel(_youtubeClient, VideoResult, SelectedStream, FfmpegPath),
+            DataContext = new DownloadProgressViewModel(_youtubeClient, file.TryGetLocalPath()!, VideoResult,
+                SelectedStream, FfmpegPath),
             WindowStartupLocation = WindowStartupLocation.CenterOwner
         };
-        await downloadProgressWindow.ShowDialog(GetMainWindow());
+        downloadProgressWindow.Show(GetMainWindow());
+
+        return;
+
+        static string GetSafeFileName(string fileName) => fileName
+            .Replace("/", "⁄")
+            .Replace("\\", "＼")
+            .Replace(":", "：")
+            .Replace("?", "？")
+            .Replace("|", "｜")
+            .Replace("\"", "”")
+            .Replace("*", "＊")
+            .Replace("<", "＜")
+            .Replace(">", "＞");
     }
 }
