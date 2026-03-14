@@ -113,10 +113,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 if (!tempResult.IsLiveStream)
                 {
                     var streamManifest = await _youtubeClient.Videos.Streams.GetManifestAsync(video.Url);
-
-                    // Filter out WebM video-only streams
                     tempResult.VideoStreams = streamManifest.GetVideoOnlyStreams()
-                        .Where(s => s.Container != Container.WebM)
                         .OrderByDescending(s => s.VideoQuality.MaxHeight)
                         .Select(s => new VideoStreamInfo
                         {
@@ -126,10 +123,7 @@ public partial class MainWindowViewModel : ViewModelBase
                             Bitrate = s.Bitrate,
                             Size = s.Size
                         });
-
-                    // Filter out WebM audio-only streams
                     tempResult.AudioStreams = streamManifest.GetAudioOnlyStreams()
-                        .Where(s => s.Container != Container.WebM)
                         .OrderByDescending(s => s.Bitrate.BitsPerSecond)
                         .Select(s => new AudioStreamInfo
                         {
