@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
@@ -74,6 +75,17 @@ public partial class MainWindowViewModel : ViewModelBase
         if (value == null) return;
         SelectedStream = value;
         SelectedVideoStream = null;
+    }
+
+    [RelayCommand]
+    private static async Task OpenSettingsAsync()
+    {
+        var settingWindow = new SettingWindow
+        {
+            DataContext = new SettingViewModel(),
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+        await settingWindow.ShowDialog(GetMainWindow());
     }
 
     [RelayCommand]
@@ -170,21 +182,48 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (VideoResult == null || SelectedStream == null) return;
 
-        var options = new FilePickerSaveOptions
-        {
-            Title = "Chọn nơi lưu file tải xuống",
-            DefaultExtension = SelectedStream.Container.Name,
-            SuggestedFileName = $"{GetSafeFileName(VideoResult.Title)}.{SelectedStream.Container.Name}",
-            FileTypeChoices = [new FilePickerFileType(SelectedStream.Container.Name)],
-            SuggestedFileType = new FilePickerFileType(SelectedStream.Container.Name)
-        };
+        var settings = Setting.LoadSettings();
 
-        var file = await GetMainWindow().StorageProvider.SaveFilePickerAsync(options);
-        if (file == null) return;
+        string filePath;
+        if (settings.AlwaysAskDownloadPath)
+        {
+            var options = new FilePickerSaveOptions
+            {
+                Title = "Chọn nơi lưu file tải xuống",
+                DefaultExtension = SelectedStream.Container.Name,
+                SuggestedFileName = $"{GetSafeFileName(VideoResult.Title)}.{SelectedStream.Container.Name}",
+                FileTypeChoices = [new FilePickerFileType(SelectedStream.Container.Name)],
+                SuggestedFileType = new FilePickerFileType(SelectedStream.Container.Name),
+                SuggestedStartLocation =
+                    await GetMainWindow().StorageProvider.TryGetFolderFromPathAsync(settings.DownloadPath),
+                ShowOverwritePrompt = true
+            };
+            var file = await GetMainWindow().StorageProvider.SaveFilePickerAsync(options);
+            if (file == null) return;
+            filePath = file.TryGetLocalPath() ?? throw new InvalidOperationException("Failed to get local path from the selected file.");
+        }
+        else
+        {
+            filePath = Path.Combine(settings.DownloadPath,
+                $"{GetSafeFileName(VideoResult.Title)}.{SelectedStream.Container.Name}");
+            if (File.Exists(filePath))
+            {
+                var result = await MessageBoxManager
+                    .GetMessageBoxStandard(new MessageBoxStandardParams
+                    {
+                        ContentTitle = "File đã tồn tại",
+                        ContentMessage =
+                            "Một file với tên tương tự đã tồn tại trong thư mục đích. Bạn có muốn ghi đè lên file đó không?",
+                        Icon = Icon.Warning,
+                        ButtonDefinitions = ButtonEnum.YesNo
+                    }).ShowAsPopupAsync(GetMainWindow());
+                if (result == ButtonResult.No) return;
+            }
+        }
 
         var downloadProgressWindow = new DownloadProgressWindow
         {
-            DataContext = new DownloadProgressViewModel(_youtubeClient, file.TryGetLocalPath()!, VideoResult,
+            DataContext = new DownloadProgressViewModel(_youtubeClient, filePath, VideoResult,
                 SelectedStream, FfmpegPath),
             WindowStartupLocation = WindowStartupLocation.CenterOwner
         };
