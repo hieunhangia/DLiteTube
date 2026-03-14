@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using DLiteTube.ViewModels;
@@ -9,9 +8,6 @@ namespace DLiteTube;
 /// <summary>
 /// Given a view model, returns the corresponding view if possible.
 /// </summary>
-[RequiresUnreferencedCode(
-    "Default implementation of ViewLocator involves reflection which may be trimmed away.",
-    Url = "https://docs.avaloniaui.net/docs/concepts/view-locator")]
 public class ViewLocator : IDataTemplate
 {
     public Control? Build(object? param)
@@ -22,6 +18,7 @@ public class ViewLocator : IDataTemplate
         {
             MainWindowViewModel => new MainWindow(),
             DownloadProgressViewModel => new DownloadProgressWindow(),
+            SettingViewModel  => new SettingWindow(),
             _ => new TextBlock { Text = "Not Found: " + param.GetType().Name }
         };
     }
